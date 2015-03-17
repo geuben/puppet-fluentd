@@ -28,12 +28,27 @@ class fluentd::packages (
 # extra bits... why this is required isn't quite clear.
     case $::osfamily {
         'debian': {
-            package{[
-                'libxslt1.1',
-                'libyaml-0-2',
-            ]:
-                before => Package[$package_name],
-                ensure => $package_ensure
+            case $package_ensure {
+                'present', 'absent', 'installed', 'purged', 'held', 'latest': {
+                    package{[
+                        'libxslt1.1',
+                        'libyaml-0-2',
+                    ]:
+                        before => Package[$package_name],
+                        ensure => $package_ensure
+                    }
+                }
+                default: {
+                    # specific version of td-agent asked for, just make
+                    # sure that these two packages are installed
+                    package{[
+                        'libxslt1.1',
+                        'libyaml-0-2',
+                    ]:
+                        before => Package[$package_name],
+                        ensure => present
+                    }
+                }
             }
             exec {'add user td-agent to group adm':
                 provider => shell,
